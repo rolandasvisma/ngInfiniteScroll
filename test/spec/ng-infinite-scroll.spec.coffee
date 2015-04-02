@@ -62,6 +62,10 @@ containers =
     start: "<div id='ancestor' style='height: 50%; overflow: auto;'><div>"
     end: "</div></div>"
     attr: "infinite-scroll-container='\"#ancestor\"'"
+  hidden:
+    start: "<div style=\"display:none;\">"
+    end: "</div>"
+    attr: ""
 
 getElementByIdScript = (id) ->
   "document.getElementById('#{id}')"
@@ -149,6 +153,11 @@ describe "ng-infinite-scroll", ->
               expect(getItems().count()).toBe 100
               browser.driver.executeScript(scrollToLastScreenScript(container, 20))
               expect(getItems().count()).toBe 200
+
+            it "do not trigger when element is invisible", -> 
+              replaceIndexFile "", throttle
+              browser.get pathToDocument
+              expect(getItems().count()).toBe 0
 
             describe "with an event handler", ->
 
