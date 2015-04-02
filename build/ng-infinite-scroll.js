@@ -1,4 +1,4 @@
-/* ng-infinite-scroll - v1.2.0 - 2015-02-14 */
+/* ng-infinite-scroll - v1.2.0 - 2015-04-02 */
 var mod;
 
 mod = angular.module('infinite-scroll', []);
@@ -17,7 +17,7 @@ mod.directive('infiniteScroll', [
         infiniteScrollListenForEvent: '@'
       },
       link: function(scope, elem, attrs) {
-        var changeContainer, checkWhenEnabled, container, handleInfiniteScrollContainer, handleInfiniteScrollDisabled, handleInfiniteScrollDistance, handleInfiniteScrollUseDocumentBottom, handler, height, immediateCheck, offsetTop, pageYOffset, scrollDistance, scrollEnabled, throttle, unregisterEventListener, useDocumentBottom, windowElement;
+        var changeContainer, checkWhenEnabled, container, handleInfiniteScrollContainer, handleInfiniteScrollDisabled, handleInfiniteScrollDistance, handleInfiniteScrollUseDocumentBottom, handler, height, immediateCheck, isVisible, offsetTop, pageYOffset, scrollDistance, scrollEnabled, throttle, unregisterEventListener, useDocumentBottom, windowElement;
         windowElement = angular.element($window);
         scrollDistance = null;
         scrollEnabled = null;
@@ -33,6 +33,9 @@ mod.directive('infiniteScroll', [
           } else {
             return elem.offsetHeight;
           }
+        };
+        isVisible = function(elem) {
+          return elem[0].offsetWidth && elem[0].offsetHeight;
         };
         offsetTop = function(elem) {
           if (!elem[0].getBoundingClientRect || elem.css('none')) {
@@ -50,22 +53,26 @@ mod.directive('infiniteScroll', [
         };
         handler = function() {
           var containerBottom, containerTopOffset, elementBottom, remaining, shouldScroll;
-          if (container === windowElement) {
-            containerBottom = height(container) + pageYOffset(container[0].document.documentElement);
-            elementBottom = offsetTop(elem) + height(elem);
-          } else {
-            containerBottom = height(container);
-            containerTopOffset = 0;
-            if (offsetTop(container) !== void 0) {
-              containerTopOffset = offsetTop(container);
+          if (isVisible(elem)) {
+            if (container === windowElement) {
+              containerBottom = height(container) + pageYOffset(container[0].document.documentElement);
+              elementBottom = offsetTop(elem) + height(elem);
+            } else {
+              containerBottom = height(container);
+              containerTopOffset = 0;
+              if (offsetTop(container) !== void 0) {
+                containerTopOffset = offsetTop(container);
+              }
+              elementBottom = offsetTop(elem) - containerTopOffset + height(elem);
             }
-            elementBottom = offsetTop(elem) - containerTopOffset + height(elem);
+            if (useDocumentBottom) {
+              elementBottom = height((elem[0].ownerDocument || elem[0].document).documentElement);
+            }
+            remaining = elementBottom - containerBottom;
+            shouldScroll = remaining <= height(container) * scrollDistance + 1;
+          } else {
+            shouldScroll = false;
           }
-          if (useDocumentBottom) {
-            elementBottom = height((elem[0].ownerDocument || elem[0].document).documentElement);
-          }
-          remaining = elementBottom - containerBottom;
-          shouldScroll = remaining <= height(container) * scrollDistance + 1;
           if (shouldScroll) {
             checkWhenEnabled = true;
             if (scrollEnabled) {
